@@ -13,9 +13,19 @@
 tailwind.config = {
   theme: {
     extend: {
-      colors: { bg: '#F4F4F0', neoBlack: '#000000', neoYellow: '#FFD600', neoCyan: '#00E5FF', neoPink: '#FF2E88', neoRed: '#FF3B30' },
-      fontFamily: { display: ['"Archivo Black"', 'sans-serif'], body: ['"Space Grotesk"', 'sans-serif'] },
-      boxShadow: { 'brutal': '4px 4px 0px 0px #000', 'brutal-lg': '8px 8px 0px 0px #000', 'brutal-sm': '2px 2px 0px 0px #000' },
+      colors: {
+        bg: '#F4F4F0', neoBlack: '#000000', neoYellow: '#FFD600',
+        neoCyan: '#00E5FF', neoPink: '#FF2E88', neoRed: '#FF3B30',
+      },
+      fontFamily: {
+        display: ['"Archivo Black"', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+      },
+      boxShadow: {
+        'brutal': '4px 4px 0px 0px #000',
+        'brutal-lg': '8px 8px 0px 0px #000',
+        'brutal-sm': '2px 2px 0px 0px #000',
+      },
       borderWidth: { '3': '3px', '4': '4px' }
     }
   }
@@ -31,37 +41,40 @@ tailwind.config = {
   .skeleton { background: #E2E8F0; position: relative; overflow: hidden; }
   .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); animation: shimmer 1.5s infinite; }
   @keyframes shimmer { 100% { transform: translateX(100%); } }
-  .btn-brutal { transition: all 0.15s; }
+  .btn-brutal { transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
   .btn-brutal:active { transform: translate(4px, 4px); box-shadow: none !important; }
   .card-hover { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease; }
   .card-hover:hover { transform: translateY(-8px) rotate(-1.5deg) scale(1.02); box-shadow: 8px 8px 0px 0px #000; }
   .modal-pop { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
   @keyframes popIn { 0% { transform: scale(0.85) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-  
   video::-webkit-media-controls { display: none !important; }
 </style>
 </head>
-<body class="bg-dots font-body text-neoBlack min-h-screen pb-10">
+<body class="bg-dots font-body text-neoBlack min-h-screen pb-24 md:pb-10">
 
   <!-- HEADER -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-neoBlack px-4 py-3 md:px-8 flex items-center justify-between">
-    <div class="flex items-center gap-2 cursor-pointer" onclick="playSound('click'); resetHome()">
-      <div class="w-10 h-10 bg-neoBlack text-neoYellow flex items-center justify-center font-display text-2xl border-3 border-neoBlack shadow-brutal-sm transform -skew-x-12">K</div>
-      <h1 class="font-display text-2xl tracking-tighter uppercase hidden sm:block">STREAM<span class="text-neoPink">.</span></h1>
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-neoBlack px-4 py-3 md:px-8 flex flex-col md:flex-row items-center gap-3">
+    <div class="flex items-center justify-between w-full md:w-auto">
+      <div class="flex items-center gap-2 cursor-pointer btn-brutal" onclick="playSound('click'); resetHome()">
+        <div class="w-10 h-10 bg-neoBlack text-neoYellow flex items-center justify-center font-display text-2xl border-3 border-neoBlack shadow-brutal-sm transform -skew-x-12">K</div>
+        <h1 class="font-display text-2xl tracking-tighter uppercase mt-1 hidden sm:block">STREAM<span class="text-neoPink">.</span></h1>
+      </div>
     </div>
-    <div class="flex-1 max-w-xl mx-4 relative">
+    <div class="flex-1 w-full max-w-xl mx-auto relative group">
       <input type="text" id="searchInput" placeholder="Cari judul anime..." class="w-full bg-white border-3 border-neoBlack py-2 pl-10 pr-4 font-bold shadow-brutal-sm focus:outline-none focus:ring-4 focus:ring-neoCyan text-sm" onkeydown="if(event.key==='Enter') { playSound('click'); doSearch(); }">
       <svg class="absolute left-3 top-2.5 w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
     </div>
-    <button onclick="playSound('click'); doSearch();" class="px-6 py-2 bg-neoCyan border-3 border-neoBlack font-bold shadow-brutal btn-brutal uppercase hidden md:block">Cari</button>
+    <button onclick="playSound('click'); doSearch();" class="hidden md:block px-6 py-2 bg-neoCyan border-3 border-neoBlack font-bold shadow-brutal btn-brutal hover:bg-cyan-300 uppercase">Cari</button>
   </header>
 
   <main class="max-w-[1400px] mx-auto px-4 md:px-8 mt-6">
-    <div class="flex items-center justify-between mb-6">
-      <h2 id="sectionTitle" class="font-display text-2xl uppercase bg-neoYellow px-4 py-1.5 border-3 border-neoBlack shadow-brutal-sm inline-block transform -rotate-1">Trending Anime</h2>
-      <button id="backBtn" onclick="playSound('click'); resetHome()" class="hidden text-sm font-bold bg-white border-3 border-neoBlack px-4 py-2 shadow-brutal-sm btn-brutal hover:bg-gray-100 uppercase">← Kembali</button>
+    <div class="flex items-center justify-between mb-8">
+      <div class="relative">
+        <h3 id="sectionTitle" class="font-display text-2xl md:text-4xl uppercase bg-neoYellow px-4 py-1.5 border-3 border-neoBlack shadow-brutal-sm inline-block transform -rotate-1">Trending Anime</h3>
+      </div>
+      <button id="backToHomeBtn" onclick="playSound('click'); resetHome()" class="hidden text-sm font-bold bg-white border-3 border-neoBlack px-4 py-2 shadow-brutal-sm btn-brutal hover:bg-gray-100 uppercase">← KEMBALI</button>
     </div>
-    <div id="animeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"></div>
+    <div id="animeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 md:gap-6"></div>
   </main>
 
   <!-- MODAL EPISODE -->
@@ -69,18 +82,18 @@ tailwind.config = {
     <div class="relative w-full max-w-3xl bg-bg border-4 border-neoBlack shadow-brutal-lg flex flex-col max-h-[85vh] modal-pop">
       <div class="flex items-center justify-between p-4 border-b-4 border-neoBlack bg-neoCyan">
         <div class="pr-4">
-          <h3 class="font-display text-lg uppercase line-clamp-1" id="modalTitle">Judul</h3>
-          <p class="text-xs font-bold bg-white inline-block px-2 py-0.5 border-2 border-neoBlack mt-1" id="modalSubtitle">Pilih Episode</p>
+          <h3 class="font-display text-lg md:text-2xl uppercase leading-tight line-clamp-1 text-neoBlack" id="modalTitle">Judul Anime</h3>
+          <p class="text-xs font-bold text-neoBlack mt-1.5 border-2 border-neoBlack bg-white inline-block px-2 py-0.5 shadow-brutal-sm" id="modalSubtitle">Pilih Episode</p>
         </div>
-        <button onclick="playSound('click'); closeEpisodeModal()" class="w-10 h-10 border-3 border-neoBlack bg-neoRed text-white flex items-center justify-center shadow-brutal-sm btn-brutal"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <button onclick="playSound('click'); closeEpisodeModal()" class="w-10 h-10 shrink-0 border-3 border-neoBlack bg-neoRed text-white flex items-center justify-center shadow-brutal-sm btn-brutal hover:bg-red-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
-      <div id="episodeList" class="p-4 overflow-y-auto flex-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 bg-gray-100"></div>
+      <div id="episodeList" class="p-4 md:p-6 overflow-y-auto flex-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 bg-gray-100"></div>
     </div>
   </div>
 
-  <!-- PLAYER KUSTOM -->
+  <!-- PLAYER HLS.js KUSTOM -->
   <div id="playerModal" class="fixed inset-0 z-[60] hidden items-start justify-center p-0 md:p-6 bg-neoBlack/95 backdrop-blur-md overflow-y-auto">
-    <div class="relative w-full max-w-5xl bg-white md:border-4 md:border-neoBlack md:shadow-[12px_12px_0px_0px_#FFD600] flex flex-col md:mt-4 modal-pop">
+    <div class="relative w-full max-w-5xl bg-white md:border-4 md:border-neoBlack md:shadow-[12px_12px_0px_0px_#FFD600] flex flex-col md:mt-4 mb-20 md:mb-4 modal-pop">
       
       <div class="w-full aspect-video bg-black relative flex items-center justify-center border-b-4 border-neoBlack group">
         <video id="videoPlayer" class="w-full h-full object-contain" crossorigin="anonymous"></video>
@@ -99,8 +112,12 @@ tailwind.config = {
               <button onclick="toggleMute()" id="muteBtn" class="hover:text-neoPink"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
             <div class="flex items-center gap-4">
+              <!-- Quality Menu Kustom (BENERAN BERFUNGSI) -->
               <div class="relative">
-                <button onclick="toggleQualityMenu(event)" class="hover:text-neoPink"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
+                <button onclick="toggleQualityMenu(event)" class="hover:text-neoPink flex items-center gap-1">
+                  <span id="currentQuality" class="text-xs font-bold font-mono">Auto</span>
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
                 <div id="qualityMenu" class="hidden absolute bottom-10 right-0 bg-black/90 border-2 border-white/20 text-white min-w-[120px] rounded overflow-hidden">
                   <div class="px-3 py-2 text-xs font-bold bg-white/10 border-b border-white/20">Kualitas</div>
                   <div id="qualityList" class="flex flex-col text-sm"></div>
@@ -112,7 +129,6 @@ tailwind.config = {
           </div>
         </div>
 
-        <!-- Loading State -->
         <div id="playerLoading" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-neoBlack z-10">
           <div class="w-16 h-16 border-4 border-neoYellow border-t-transparent rounded-full animate-spin mb-4"></div>
           <p class="font-display text-xl text-neoYellow uppercase tracking-widest">Memuat Stream...</p>
@@ -121,9 +137,9 @@ tailwind.config = {
 
       <div class="p-4 md:p-6 bg-white">
         <h2 id="playerTitle" class="font-display text-xl md:text-3xl leading-tight mb-2">Judul Anime</h2>
-        <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 mb-4">
-          <span class="bg-neoCyan px-3 py-1 border-2 border-neoBlack shadow-brutal-sm">Server: Kustom (HLS)</span>
-          <span id="playerEpInfo" class="bg-gray-200 px-3 py-1 border-2 border-neoBlack shadow-brutal-sm">EP 1 / 12</span>
+        <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm font-bold text-gray-600 mb-4">
+          <span class="bg-neoCyan px-3 py-1 border-2 border-neoBlack text-neoBlack shadow-brutal-sm">Server: Scraper Vercel</span>
+          <span id="playerEpInfo" class="bg-gray-200 px-3 py-1 border-2 border-neoBlack text-neoBlack shadow-brutal-sm">EP 1 / 12</span>
         </div>
         <button onclick="playSound('click'); closePlayerModal()" class="w-full py-3 bg-neoRed text-white font-display text-lg border-3 border-neoBlack shadow-brutal btn-brutal uppercase hover:bg-red-600">TUTUP VIDEO</button>
       </div>
@@ -133,7 +149,6 @@ tailwind.config = {
 <script>
 const ANILIST_API = 'https://graphql.anilist.co';
 const STREAM_API = '/api/stream'; 
-
 let hls = null;
 let playerState = { title: '', epNum: 1, totalEps: 12 };
 let audioCtx;
@@ -145,37 +160,25 @@ function playSound(type) {
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
-    if (type === 'click') {
-      osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
-      gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    }
+    if (type === 'click') { osc.type = 'square'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(200, now + 0.1); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); }
   } catch (e) {}
 }
 
 const MEDIA_FIELDS = `id title { romaji english } coverImage { extraLarge } averageScore status genres episodes`;
 
 async function fetchAniList(query, variables) {
-  const res = await fetch(ANILIST_API, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({ query, variables }),
-  });
-  const data = await res.json();
-  return data.data;
+  const res = await fetch(ANILIST_API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ query, variables }) });
+  const data = await res.json(); return data.data;
 }
 
 function renderAnimeCards(animes) {
   const grid = document.getElementById('animeGrid');
-  if (!animes || animes.length === 0) {
-    grid.innerHTML = `<div class="col-span-full text-center font-display text-2xl py-10 bg-white border-4 border-neoBlack shadow-brutal">TIDAK ADA ANIME DITEMUKAN.</div>`;
-    return;
-  }
+  if (!animes || animes.length === 0) { grid.innerHTML = `<div class="col-span-full text-center font-display text-2xl py-10 bg-white border-4 border-neoBlack shadow-brutal">TIDAK ADA ANIME DITEMUKAN.</div>`; return; }
   grid.innerHTML = animes.map(anime => {
     const title = anime.title.english || anime.title.romaji;
     const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     const totalEps = anime.episodes || 12;
     const statusBadge = anime.status === 'FINISHED' ? 'bg-neoCyan' : anime.status === 'RELEASING' ? 'bg-green-400' : 'bg-gray-300';
-    
     return `
       <div class="cursor-pointer group flex flex-col h-full" onclick="playSound('click'); openEpisodeModal('${safeTitle}', ${totalEps})">
         <div class="relative border-4 border-neoBlack bg-white aspect-[2/3] card-hover">
@@ -188,8 +191,7 @@ function renderAnimeCards(animes) {
         <div class="mt-3 bg-white border-3 border-neoBlack p-2.5 shadow-brutal-sm group-hover:bg-neoYellow transition-colors">
           <h4 class="font-display text-[13px] leading-tight line-clamp-2 text-neoBlack">${title}</h4>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -199,32 +201,26 @@ async function loadHome() {
     const query = `query { Page(page: 1, perPage: 18) { media(type: ANIME, sort: TRENDING_DESC) { ${MEDIA_FIELDS} } } }`;
     const data = await fetchAniList(query);
     renderAnimeCards(data.Page.media);
-  } catch (e) {
-    document.getElementById('animeGrid').innerHTML = `<div class="col-span-full text-center font-bold text-red-500 py-10">Gagal memuat data.</div>`;
-  }
+  } catch (e) { document.getElementById('animeGrid').innerHTML = `<div class="col-span-full text-center font-bold text-red-500 py-10">Gagal memuat data.</div>`; }
 }
 
 async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return resetHome();
-  
   document.getElementById('sectionTitle').textContent = `Hasil: "${q}"`;
-  document.getElementById('backBtn').classList.remove('hidden');
+  document.getElementById('backToHomeBtn').classList.remove('hidden');
   document.getElementById('animeGrid').innerHTML = `<div class="col-span-full flex justify-center py-10"><div class="w-12 h-12 border-4 border-neoBlack border-t-neoPink rounded-full animate-spin"></div></div>`;
-  
   try {
     const gql = `query($search: String) { Page(page: 1, perPage: 24) { media(type: ANIME, search: $search) { ${MEDIA_FIELDS} } } }`;
     const data = await fetchAniList(gql, { search: q });
     renderAnimeCards(data.Page.media);
-  } catch (e) {
-    document.getElementById('animeGrid').innerHTML = `<div class="col-span-full text-center font-bold text-red-500 py-10">Pencarian gagal.</div>`;
-  }
+  } catch (e) { document.getElementById('animeGrid').innerHTML = `<div class="col-span-full text-center font-bold text-red-500 py-10">Pencarian gagal.</div>`; }
 }
 
 function resetHome() {
   document.getElementById('searchInput').value = '';
   document.getElementById('sectionTitle').textContent = 'Trending Anime';
-  document.getElementById('backBtn').classList.add('hidden');
+  document.getElementById('backToHomeBtn').classList.add('hidden');
   loadHome();
 }
 
@@ -233,14 +229,9 @@ function openEpisodeModal(title, totalEps) {
   document.getElementById('modalSubtitle').textContent = `Total ${totalEps} Episode`;
   document.getElementById('episodeModal').classList.remove('hidden');
   document.getElementById('episodeModal').classList.add('flex');
-  
   let html = '';
   for (let i = 1; i <= totalEps; i++) {
-    html += `
-      <button onclick="playSound('click'); playEpisode('${title}', ${i}, ${totalEps})" 
-              class="w-full py-3 bg-white border-3 border-neoBlack font-display text-sm shadow-brutal btn-brutal hover:bg-neoYellow flex flex-col items-center justify-center transition-colors">
-        <span class="text-xs text-gray-500 font-body font-bold">EPS</span><span class="text-lg">${i}</span>
-      </button>`;
+    html += `<button onclick="playSound('click'); playEpisode('${title}', ${i}, ${totalEps})" class="w-full py-3 bg-white border-3 border-neoBlack font-display text-sm shadow-brutal btn-brutal hover:bg-neoYellow flex flex-col items-center justify-center transition-colors"><span class="text-xs text-gray-500 font-body font-bold">EPS</span><span class="text-lg">${i}</span></button>`;
   }
   document.getElementById('episodeList').innerHTML = html;
 }
@@ -253,12 +244,10 @@ function closeEpisodeModal() {
 function playEpisode(title, epNum, totalEps) {
   closeEpisodeModal();
   playerState = { title, epNum, totalEps };
-  
   document.getElementById('playerModal').classList.remove('hidden');
   document.getElementById('playerModal').classList.add('flex');
   document.getElementById('playerTitle').textContent = title;
   document.getElementById('playerEpInfo').textContent = `EP ${epNum} / ${totalEps}`;
-  
   loadStream(title, epNum);
 }
 
@@ -272,14 +261,10 @@ async function loadStream(title, epNum) {
   video.pause(); video.removeAttribute('src'); video.load();
 
   try {
-    // Memanggil API backend kita
     const res = await fetch(`${STREAM_API}?title=${encodeURIComponent(title)}&ep=${epNum}`);
-    
-    // Ambil JSON error jika ada
     const data = await res.json(); 
     if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan di server');
-
-    if (!data.sources || data.sources.length === 0) throw new Error('Video tidak tersedia di server.');
+    if (!data.sources || data.sources.length === 0) throw new Error('Video tidak tersedia.');
 
     const source = data.sources.find(s => s.isM3U8) || data.sources[0];
 
@@ -295,29 +280,22 @@ async function loadStream(title, epNum) {
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) loading.innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Video diblokir.</p>';
+        if (data.fatal) loading.innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Diblokir.</p>';
       });
     } else {
       video.src = source.url;
-      video.addEventListener('loadedmetadata', () => {
-        loading.classList.add('hidden');
-        video.play();
-      });
+      video.addEventListener('loadedmetadata', () => { loading.classList.add('hidden'); video.play(); });
     }
 
     video.querySelectorAll('track').forEach(t => t.remove());
     if (data.subtitles) {
       data.subtitles.forEach((sub, idx) => {
         const track = document.createElement('track');
-        track.kind = 'subtitles';
-        track.label = sub.lang;
-        track.srclang = sub.lang.substring(0, 2).toLowerCase();
-        track.src = sub.url;
+        track.kind = 'subtitles'; track.label = sub.lang; track.srclang = sub.lang.substring(0, 2).toLowerCase(); track.src = sub.url;
         if (idx === 0) track.default = true;
         video.appendChild(track);
       });
     }
-
   } catch (err) {
     loading.innerHTML = `<p class="text-red-500 font-bold p-4 text-center">${err.message}</p>`;
   }
@@ -327,76 +305,42 @@ const video = document.getElementById('videoPlayer');
 function togglePlay() { video.paused ? video.play() : video.pause(); }
 video.addEventListener('play', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>');
 video.addEventListener('pause', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>');
-
 video.addEventListener('timeupdate', () => {
   const p = (video.currentTime / video.duration) * 100;
   document.getElementById('progressBar').style.width = `${p}%`;
   const fmt = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`;
   document.getElementById('timeDisplay').textContent = `${fmt(video.currentTime)} / ${fmt(video.duration || 0)}`;
 });
-
-function seekVideo(e) {
-  const rect = e.currentTarget.getBoundingClientRect();
-  video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
-}
-
+function seekVideo(e) { const rect = e.currentTarget.getBoundingClientRect(); video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration; }
 function toggleMute() { video.muted = !video.muted; }
-function toggleFullscreen() {
-  if (!document.fullscreenElement) document.getElementById('playerModal').requestFullscreen();
-  else document.exitFullscreen();
-}
-
+function toggleFullscreen() { if (!document.fullscreenElement) document.getElementById('playerModal').requestFullscreen(); else document.exitFullscreen(); }
 function toggleSubtitle() {
   const tracks = video.textTracks;
-  if (tracks.length > 0) {
-    tracks[0].mode = tracks[0].mode === 'showing' ? 'hidden' : 'showing';
-    document.getElementById('subBtn').style.opacity = tracks[0].mode === 'showing' ? '1' : '0.5';
-  }
+  if (tracks.length > 0) { tracks[0].mode = tracks[0].mode === 'showing' ? 'hidden' : 'showing'; document.getElementById('subBtn').style.opacity = tracks[0].mode === 'showing' ? '1' : '0.5'; }
 }
 
 function setupQualityMenu(levels) {
-  const list = document.getElementById('qualityList');
-  list.innerHTML = '';
+  const list = document.getElementById('qualityList'); list.innerHTML = '';
+  if (!levels || levels.length === 0) { list.innerHTML = '<div class="p-2 text-xs">1 Kualitas</div>'; return; }
   
-  if (!levels || levels.length === 0) {
-    list.innerHTML = '<div class="p-2 text-xs">1 Kualitas</div>';
-    return;
-  }
-
   const autoBtn = document.createElement('button');
   autoBtn.className = 'px-3 py-2 text-left hover:bg-neoPink hover:text-white text-xs border-b border-white/10';
   autoBtn.textContent = 'Auto';
-  autoBtn.onclick = () => { hls.currentLevel = -1; toggleQualityMenu(); };
+  autoBtn.onclick = () => { hls.currentLevel = -1; document.getElementById('currentQuality').textContent = 'Auto'; toggleQualityMenu(); };
   list.appendChild(autoBtn);
 
   levels.sort((a, b) => b.height - a.height).forEach((level) => {
     const btn = document.createElement('button');
     btn.className = 'px-3 py-2 text-left hover:bg-neoPink hover:text-white text-xs border-b border-white/10';
     btn.textContent = level.height ? `${level.height}p` : `${Math.round(level.bitrate/1000)}kbps`;
-    btn.onclick = () => { hls.currentLevel = level.id; toggleQualityMenu(); };
+    btn.onclick = () => { hls.currentLevel = level.id; document.getElementById('currentQuality').textContent = btn.textContent; toggleQualityMenu(); };
     list.appendChild(btn);
   });
 }
-
-function toggleQualityMenu(e) {
-  if(e) e.stopPropagation();
-  document.getElementById('qualityMenu').classList.toggle('hidden');
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.relative')) document.getElementById('qualityMenu').classList.add('hidden');
-});
-
-function closePlayerModal() {
-  video.pause();
-  if (hls) { hls.destroy(); hls = null; }
-  document.getElementById('playerModal').classList.add('hidden');
-  document.getElementById('playerModal').classList.remove('flex');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadHome();
-});
+function toggleQualityMenu(e) { if(e) e.stopPropagation(); document.getElementById('qualityMenu').classList.toggle('hidden'); }
+document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) document.getElementById('qualityMenu').classList.add('hidden'); });
+function closePlayerModal() { video.pause(); if (hls) { hls.destroy(); hls = null; } document.getElementById('playerModal').classList.add('hidden'); document.getElementById('playerModal').classList.remove('flex'); }
+document.addEventListener('DOMContentLoaded', () => { loadHome(); });
 </script>
 </body>
 </html>
