@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>K-Stream - Watch Anime</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- HLS.js untuk memutar video m3u8 -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg: '#F4F4F0',
+        neoBlack: '#000000',
+        neoYellow: '#FFD600',
+        neoCyan: '#00E5FF',
+        neoPink: '#FF2E88',
+        neoRed: '#FF3B30',
+      },
+      fontFamily: {
+        display: ['"Archivo Black"', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+      },
+      boxShadow: {
+        'brutal': '4px 4px 0px 0px #000',
+        'brutal-lg': '8px 8px 0px 0px #000',
+        'brutal-sm': '2px 2px 0px 0px #000',
+      },
+      borderWidth: { '3': '3px', '4': '4px' }
+    }
+  }
+}
+</script>
+<style>
+  /* Styles dari sebelumnya tetap dipertahankan */
+  .bg-dots { background-color: #F4F4F0; background-image: radial-gradient(#000 1.5px, transparent 1.5px); background-size: 24px 24px; }
+  .btn-brutal { transition: all 0.15s; }
+  .btn-brutal:active { transform: translate(4px, 4px); box-shadow: none !important; }
+  .card-hover { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease; }
+  .card-hover:hover { transform: translateY(-8px) rotate(-1.5deg) scale(1.02); box-shadow: 8px 8px 0px 0px #000; }
+  .modal-pop { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popIn { 0% { transform: scale(0.85) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+  .slide-up { animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes slideUp { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+  @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  
+  /* Sembunyikan kontrol bawaan video HTML5 */
+  video::-webkit-media-controls { display: none !important; }
+</style>
+</head>
+<body class="bg-dots font-body text-neoBlack min-h-screen pb-24 md:pb-10">
+
+  <!-- (HEADER & HERO SECTION SAMA SEPERTI SEBELUMNYA) -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-neoBlack px-4 py-3 md:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-2 cursor-pointer" onclick="playSound('click'); resetHome()">
+      <div class="w-10 h-10 bg-neoBlack text-neoYellow flex items-center justify-center font-display text-2xl border-3 border-neoBlack shadow-brutal-sm transform -skew-x-12">K</div>
+      <h1 class="font-display text-2xl tracking-tighter uppercase hidden sm:block">STREAM<span class="text-neoPink">.</span></h1>
+    </div>
+    <div class="flex-1 max-w-xl mx-4 relative">
+      <input type="text" id="searchInput" placeholder="Cari judul anime..." class="w-full bg-white border-3 border-neoBlack py-2 pl-10 pr-4 font-bold shadow-brutal-sm focus:outline-none focus:ring-4 focus:ring-neoCyan text-sm" onkeydown="if(event.key==='Enter') doSearch()">
+      <svg class="absolute left-3 top-2.5 w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+    <button onclick="doSearch()" class="px-6 py-2 bg-neoCyan border-3 border-neoBlack font-bold shadow-brutal btn-brutal uppercase hidden md:block">Cari</button>
+  </header>
+
+  <main class="max-w-[1400px] mx-auto px-4 md:px-8 mt-6">
+    <div id="animeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 md:gap-6"></div>
+  </main>
+
+  <!-- MODAL EPISODE (SAMA SEPERTI SEBELUMNYA) -->
+  <div id="episodeModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-neoBlack/80 backdrop-blur-sm">
+    <div class="relative w-full max-w-3xl bg-bg border-4 border-neoBlack shadow-brutal-lg flex flex-col max-h-[85vh] modal-pop">
+      <div class="flex items-center justify-between p-4 border-b-4 border-neoBlack bg-neoCyan">
+        <h3 class="font-display text-lg md:text-2xl uppercase leading-tight line-clamp-1" id="modalTitle">Judul</h3>
+        <button onclick="closeEpisodeModal()" class="w-10 h-10 border-3 border-neoBlack bg-neoRed text-white flex items-center justify-center shadow-brutal-sm btn-brutal"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div id="episodeList" class="p-4 overflow-y-auto flex-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 bg-gray-100"></div>
+    </div>
+  </div>
+
+  <!-- PLAYER MODAL KUSTOM (BUKAN IFRAME LAGI!) -->
+  <div id="playerModal" class="fixed inset-0 z-[60] hidden items-start justify-center p-0 md:p-6 bg-neoBlack/95 backdrop-blur-md overflow-y-auto">
+    <div class="relative w-full max-w-5xl bg-white md:border-4 md:border-neoBlack md:shadow-[12px_12px_0px_0px_#FFD600] flex flex-col md:mt-4 mb-20 md:mb-4 modal-pop">
+      
+      <!-- Video Player Wrapper -->
+      <div class="w-full aspect-video bg-black relative flex items-center justify-center border-b-4 border-neoBlack group">
+        
+        <!-- Video Element Kustom -->
+        <video id="videoPlayer" class="w-full h-full object-contain" crossorigin="anonymous"></video>
+        
+        <!-- Custom Controls Overlay -->
+        <div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" id="customControls">
+          
+          <!-- Progress Bar -->
+          <div class="px-4 mb-2 cursor-pointer w-full" onclick="seekVideo(event)">
+            <div class="w-full h-2 bg-gray-600 border border-white/20 relative">
+              <div id="progressBar" class="absolute top-0 left-0 h-full bg-neoPink w-0 transition-all duration-100"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Controls -->
+          <div class="flex items-center justify-between px-4 pb-3 text-white">
+            <div class="flex items-center gap-4">
+              <button onclick="togglePlay()" id="playBtn" class="hover:text-neoPink transition-colors"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+              <div class="text-sm font-bold font-mono" id="timeDisplay">00:00 / 00:00</div>
+              <button onclick="toggleMute()" id="muteBtn" class="hover:text-neoPink"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <!-- Quality Gear -->
+              <div class="relative">
+                <button onclick="toggleQualityMenu(event)" class="hover:text-neoPink"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
+                
+                <!-- Dropdown Quality Kustom -->
+                <div id="qualityMenu" class="hidden absolute bottom-10 right-0 bg-black/90 border-2 border-white/20 text-white min-w-[120px] rounded overflow-hidden">
+                  <div class="px-3 py-2 text-xs font-bold bg-white/10 border-b border-white/20">Kualitas</div>
+                  <div id="qualityList" class="flex flex-col text-sm"><!-- Diisi JS --></div>
+                </div>
+              </div>
+              <button onclick="toggleFullscreen()" class="hover:text-neoPink"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Video -->
+        <div id="playerLoading" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-neoBlack z-10">
+          <div class="w-16 h-16 border-4 border-neoYellow border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p class="font-display text-xl text-neoYellow uppercase tracking-widest">Memuat Stream...</p>
+        </div>
+      </div>
+
+      <!-- Info Bawah (Sama seperti sebelumnya) -->
+      <div class="p-4 md:p-6 bg-white flex-1">
+        <h2 id="playerTitle" class="font-display text-xl md:text-3xl leading-tight mb-2">Judul Anime</h2>
+        <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm font-bold text-gray-600 mb-4">
+          <span class="bg-neoCyan px-3 py-1 border-2 border-neoBlack text-neoBlack shadow-brutal-sm">Server: Vercel Proxy</span>
+          <span id="playerEpInfo" class="bg-gray-200 px-3 py-1 border-2 border-neoBlack text-neoBlack shadow-brutal-sm">EP 1 / 12</span>
+        </div>
+        <button onclick="closePlayerModal()" class="w-full py-3 bg-neoRed text-white font-display text-lg border-3 border-neoBlack shadow-brutal btn-brutal uppercase hover:bg-red-600">TUTUP VIDEO</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// === LOGIKA UTAMA ===
+const API_BASE = '/api/stream'; // Akan diarahkan ke Vercel
+let hls = null;
+let playerState = { idMal: 0, epNum: 1, totalEps: 12 };
+
+// (Fungsi UI, Search, Episode Modal sama persis. Aku fokus ke Video Player)
+
+async function playEpisode(idMal, epNum, title, totalEps) {
+  closeEpisodeModal();
+  playerState = { idMal, epNum, totalEps };
+  
+  document.getElementById('playerModal').classList.remove('hidden');
+  document.getElementById('playerModal').classList.add('flex');
+  document.getElementById('playerTitle').textContent = title;
+  document.getElementById('playerEpInfo').textContent = `EP ${epNum} / ${totalEps}`;
+  document.getElementById('playerLoading').classList.remove('hidden');
+
+  loadStream(idMal, epNum);
+}
+
+async function loadStream(idMal, epNum) {
+  const video = document.getElementById('videoPlayer');
+  
+  // Hentikan stream sebelumnya jika ada
+  if (hls) { hls.destroy(); hls = null; }
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+
+  try {
+    // 1. Ambil data dari API Vercel kita
+    // CATATAN: Kita butuh ID Gogoanime/Zoro di sini, bukan ID MAL. 
+    // Untuk demonstrasi, kita asumsikan backend kita menangani translasi ID.
+    // Di produksi, kamu harus fetch ID Gogoanime dulu.
+    const res = await fetch(`${API_BASE}?id=${idMal}&ep=${epNum}`);
+    if (!res.ok) throw new Error('Gagal mengambil stream');
+    
+    const data = await res.json();
+    if (!data.sources || data.sources.length === 0) throw new Error('Stream tidak ditemukan');
+
+    // Ambil kualitas tertinggi (biasanya elemen pertama)
+    const source = data.sources.find(s => s.isM3U8) || data.sources[0];
+
+    // 2. Putar dengan HLS.js
+    if (Hls.isSupported() && source.isM3U8) {
+      hls = new Hls();
+      hls.loadSource(source.url);
+      hls.attachMedia(video);
+      
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        document.getElementById('playerLoading').classList.add('hidden');
+        video.play();
+        setupQualityMenu(hls.levels); // Isi menu kualitas otomatis
+      });
+
+      // Tangkap error
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          document.getElementById('playerLoading').innerHTML = '<p class="text-red-500 font-bold">Stream Error / Diblokir</p>';
+        }
+      });
+    } else {
+      // Fallback untuk browser yang tidak support HLS (Safari/iOS)
+      video.src = source.url;
+      video.addEventListener('loadedmetadata', () => {
+        document.getElementById('playerLoading').classList.add('hidden');
+        video.play();
+        // Sembunyikan menu kualitas karena Safari pakai kontrol bawaan
+        document.getElementById('qualityMenu').innerHTML = '<div class="p-2 text-xs">Gunakan kontrol bawaan Safari</div>'; 
+      });
+    }
+
+    // 3. Tambahkan Subtitle
+    // Hapus subtitle lama
+    video.querySelectorAll('track').forEach(t => t.remove());
+    
+    data.subtitles.forEach((sub, index) => {
+      const track = document.createElement('track');
+      track.kind = 'subtitles';
+      track.label = sub.lang; // e.g. "Indonesian"
+      track.srclang = sub.lang.substring(0, 2).toLowerCase();
+      track.src = sub.url;
+      if (index === 0) track.default = true; // Aktifkan sub pertama (biasanya English/Indo)
+      video.appendChild(track);
+    });
+
+  } catch (err) {
+    document.getElementById('playerLoading').innerHTML = `<p class="text-red-500 font-bold">Error: ${err.message}</p>`;
+  }
+}
+
+// === KONTROL PLAYER KUSTOM ===
+const video = document.getElementById('videoPlayer');
+
+function togglePlay() {
+  if (video.paused) video.play();
+  else video.pause();
+}
+
+video.addEventListener('play', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>');
+video.addEventListener('pause', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>');
+
+video.addEventListener('timeupdate', () => {
+  const p = (video.currentTime / video.duration) * 100;
+  document.getElementById('progressBar').style.width = `${p}%`;
+  
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+  document.getElementById('timeDisplay').textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+});
+
+function seekVideo(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pos = (e.clientX - rect.left) / rect.width;
+  video.currentTime = pos * video.duration;
+}
+
+function toggleMute() {
+  video.muted = !video.muted;
+  document.getElementById('muteBtn').style.opacity = video.muted ? '0.5' : '1';
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.getElementById('playerModal').requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// === MENU KUALITAS OTOMATIS (DARI HLS) ===
+function setupQualityMenu(levels) {
+  const list = document.getElementById('qualityList');
+  list.innerHTML = '';
+  
+  if (!levels || levels.length === 0) {
+    list.innerHTML = '<div class="p-2 text-xs">Hanya tersedia 1 kualitas</div>';
+    return;
+  }
+
+  // Tambahkan opsi Auto
+  const autoBtn = document.createElement('button');
+  autoBtn.className = 'px-3 py-2 text-left hover:bg-neoPink hover:text-white text-xs border-b border-white/10';
+  autoBtn.textContent = 'Auto';
+  autoBtn.onclick = () => { hls.currentLevel = -1; toggleQualityMenu(); };
+  list.appendChild(autoBtn);
+
+  // Urutkan level dari tinggi ke rendah
+  levels.sort((a, b) => b.height - a.height).forEach((level) => {
+    const btn = document.createElement('button');
+    btn.className = 'px-3 py-2 text-left hover:bg-neoPink hover:text-white text-xs border-b border-white/10';
+    btn.textContent = level.height ? `${level.height}p` : `${Math.round(level.bitrate/1000)}kbps`;
+    btn.onclick = () => { hls.currentLevel = level.id; toggleQualityMenu(); };
+    list.appendChild(btn);
+  });
+}
+
+function toggleQualityMenu(e) {
+  if(e) e.stopPropagation();
+  document.getElementById('qualityMenu').classList.toggle('hidden');
+}
+
+// Tutup menu kualitas jika klik di luar
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.relative')) {
+    document.getElementById('qualityMenu').classList.add('hidden');
+  }
+});
+
+function closePlayerModal() {
+  const video = document.getElementById('videoPlayer');
+  video.pause();
+  if (hls) { hls.destroy(); hls = null; }
+  document.getElementById('playerModal').classList.add('hidden');
+  document.getElementById('playerModal').classList.remove('flex');
+}
+
+// (Fungsi-fungsi fetch AniList dan render Home tetap sama seperti sebelumnya, tidak perlu diubah)
+// ... [KODE FETCH ANILIST DAN RENDER HOME TETAP SAMA] ...
+</script>
+</body>
+          </html>
