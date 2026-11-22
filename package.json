@@ -1,0 +1,8 @@
+{
+  "name": "anime-stream",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@consumet/extensions": "^1.5.5"
+  }
+}
