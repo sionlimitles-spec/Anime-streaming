@@ -95,7 +95,7 @@ tailwind.config = {
     </div>
   </div>
 
-  <!-- PLAYER KUSTOM (BUKAN IFRAME) -->
+  <!-- PLAYER KUSTOM -->
   <div id="playerModal" class="fixed inset-0 z-[60] hidden items-start justify-center p-0 md:p-6 bg-neoBlack/95 backdrop-blur-md overflow-y-auto">
     <div class="relative w-full max-w-5xl bg-white md:border-4 md:border-neoBlack md:shadow-[12px_12px_0px_0px_#FFD600] flex flex-col md:mt-4 modal-pop">
       
@@ -158,11 +158,10 @@ tailwind.config = {
 // KONFIGURASI & STATE
 // ==========================================
 const ANILIST_API = 'https://graphql.anilist.co';
-// API Backend Vercel kita (pastikan file api/stream.js sudah ada)
 const STREAM_API = '/api/stream'; 
 
 let hls = null;
-let playerState = { idMal: 0, epNum: 1, totalEps: 12 };
+let playerState = { title: '', epNum: 1, totalEps: 12 };
 let audioCtx;
 
 // ==========================================
@@ -184,7 +183,7 @@ function playSound(type) {
 }
 
 // ==========================================
-// ANILIST API (FETCH DATA ANIME)
+// ANILIST API
 // ==========================================
 const MEDIA_FIELDS = `id idMal title { romaji english } coverImage { extraLarge } averageScore status genres episodes`;
 
@@ -205,13 +204,13 @@ function renderAnimeCards(animes) {
   }
   grid.innerHTML = animes.map(anime => {
     const title = anime.title.english || anime.title.romaji;
-    const safeTitle = title.replace(/'/g, "\\'");
-    const idMal = anime.idMal || 0;
+    // Ganti kutip agar tidak error saat masuk ke onclick
+    const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     const totalEps = anime.episodes || 12;
     const statusBadge = anime.status === 'FINISHED' ? 'bg-neoCyan' : anime.status === 'RELEASING' ? 'bg-green-400' : 'bg-gray-300';
     
     return `
-      <div class="cursor-pointer group flex flex-col h-full" onclick="playSound('click'); openEpisodeModal(${idMal}, '${safeTitle}', ${totalEps})">
+      <div class="cursor-pointer group flex flex-col h-full" onclick="playSound('click'); openEpisodeModal('${safeTitle}', ${totalEps})">
         <div class="relative border-4 border-neoBlack bg-white aspect-[2/3] card-hover">
           <img src="${anime.coverImage.extraLarge}" alt="${title}" class="w-full h-full object-cover">
           <div class="absolute top-2 left-2 right-2 flex justify-between z-10 pointer-events-none">
@@ -265,7 +264,7 @@ function resetHome() {
 // ==========================================
 // MODAL EPISODE
 // ==========================================
-function openEpisodeModal(idMal, title, totalEps) {
+function openEpisodeModal(title, totalEps) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalSubtitle').textContent = `Total ${totalEps} Episode`;
   document.getElementById('episodeModal').classList.remove('hidden');
@@ -274,7 +273,7 @@ function openEpisodeModal(idMal, title, totalEps) {
   let html = '';
   for (let i = 1; i <= totalEps; i++) {
     html += `
-      <button onclick="playSound('click'); playEpisode(${idMal}, ${i}, '${title}', ${totalEps})" 
+      <button onclick="playSound('click'); playEpisode('${title}', ${i}, ${totalEps})" 
               class="w-full py-3 bg-white border-3 border-neoBlack font-display text-sm shadow-brutal btn-brutal hover:bg-neoYellow flex flex-col items-center justify-center transition-colors">
         <span class="text-xs text-gray-500 font-body font-bold">EPS</span><span class="text-lg">${i}</span>
       </button>`;
@@ -290,33 +289,34 @@ function closeEpisodeModal() {
 // ==========================================
 // CUSTOM VIDEO PLAYER & STREAMING
 // ==========================================
-function playEpisode(idMal, epNum, title, totalEps) {
+function playEpisode(title, epNum, totalEps) {
   closeEpisodeModal();
-  playerState = { idMal, epNum, totalEps };
+  playerState = { title, epNum, totalEps };
   
   document.getElementById('playerModal').classList.remove('hidden');
   document.getElementById('playerModal').classList.add('flex');
   document.getElementById('playerTitle').textContent = title;
   document.getElementById('playerEpInfo').textContent = `EP ${epNum} / ${totalEps}`;
   
-  loadStream(idMal, epNum);
+  loadStream(title, epNum);
 }
 
-async function loadStream(idMal, epNum) {
+async function loadStream(title, epNum) {
   const video = document.getElementById('videoPlayer');
-  document.getElementById('playerLoading').classList.remove('hidden');
-  document.getElementById('playerLoading').innerHTML = '<div class="w-16 h-16 border-4 border-neoYellow border-t-transparent rounded-full animate-spin mb-4"></div><p class="font-display text-neoYellow">Memuat Stream...</p>';
+  const loading = document.getElementById('playerLoading');
+  loading.classList.remove('hidden');
+  loading.innerHTML = '<div class="w-16 h-16 border-4 border-neoYellow border-t-transparent rounded-full animate-spin mb-4"></div><p class="font-display text-neoYellow">Mencari Server Stream...</p>';
   
   if (hls) { hls.destroy(); hls = null; }
   video.pause(); video.removeAttribute('src'); video.load();
 
   try {
-    // Manggil API Vercel kita: /api/stream?id=...&ep=...
-    const res = await fetch(`${STREAM_API}?id=${idMal}&ep=${epNum}`);
+    // Manggil API Vercel kita dengan judul anime
+    const res = await fetch(`${STREAM_API}?title=${encodeURIComponent(title)}&ep=${epNum}`);
     if (!res.ok) throw new Error('Gagal konek ke API Stream');
     
     const data = await res.json();
-    if (!data.sources || data.sources.length === 0) throw new Error('Video tidak tersedia');
+    if (!data.sources || data.sources.length === 0) throw new Error(data.error || 'Video tidak tersedia di server');
 
     const source = data.sources.find(s => s.isM3U8) || data.sources[0];
 
@@ -327,19 +327,19 @@ async function loadStream(idMal, epNum) {
       hls.attachMedia(video);
       
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        document.getElementById('playerLoading').classList.add('hidden');
+        loading.classList.add('hidden');
         video.play().catch(e => console.log('Autoplay blocked'));
         setupQualityMenu(hls.levels);
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) document.getElementById('playerLoading').innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Server Down</p>';
+        if (data.fatal) loading.innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Video diblokir</p>';
       });
     } else {
       // Fallback Safari/iOS
       video.src = source.url;
       video.addEventListener('loadedmetadata', () => {
-        document.getElementById('playerLoading').classList.add('hidden');
+        loading.classList.add('hidden');
         video.play();
       });
     }
@@ -359,7 +359,7 @@ async function loadStream(idMal, epNum) {
     }
 
   } catch (err) {
-    document.getElementById('playerLoading').innerHTML = `<p class="text-red-500 font-bold p-4 text-center">${err.message}</p>`;
+    loading.innerHTML = `<p class="text-red-500 font-bold p-4 text-center">${err.message}</p>`;
   }
 }
 
@@ -397,7 +397,7 @@ function toggleSubtitle() {
   }
 }
 
-// === MENU KUALITAS KUSTOM (HLS LEVELS) ===
+// === MENU KUALITAS KUSTOM ===
 function setupQualityMenu(levels) {
   const list = document.getElementById('qualityList');
   list.innerHTML = '';
