@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>K-Stream - Watch Anime</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- HLS.js untuk memutar video m3u8 tanpa iframe -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,23 +13,9 @@
 tailwind.config = {
   theme: {
     extend: {
-      colors: {
-        bg: '#F4F4F0',
-        neoBlack: '#000000',
-        neoYellow: '#FFD600',
-        neoCyan: '#00E5FF',
-        neoPink: '#FF2E88',
-        neoRed: '#FF3B30',
-      },
-      fontFamily: {
-        display: ['"Archivo Black"', 'sans-serif'],
-        body: ['"Space Grotesk"', 'sans-serif'],
-      },
-      boxShadow: {
-        'brutal': '4px 4px 0px 0px #000',
-        'brutal-lg': '8px 8px 0px 0px #000',
-        'brutal-sm': '2px 2px 0px 0px #000',
-      },
+      colors: { bg: '#F4F4F0', neoBlack: '#000000', neoYellow: '#FFD600', neoCyan: '#00E5FF', neoPink: '#FF2E88', neoRed: '#FF3B30' },
+      fontFamily: { display: ['"Archivo Black"', 'sans-serif'], body: ['"Space Grotesk"', 'sans-serif'] },
+      boxShadow: { 'brutal': '4px 4px 0px 0px #000', 'brutal-lg': '8px 8px 0px 0px #000', 'brutal-sm': '2px 2px 0px 0px #000' },
       borderWidth: { '3': '3px', '4': '4px' }
     }
   }
@@ -53,7 +38,6 @@ tailwind.config = {
   .modal-pop { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
   @keyframes popIn { 0% { transform: scale(0.85) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
   
-  /* Sembunyikan kontrol video bawaan browser */
   video::-webkit-media-controls { display: none !important; }
 </style>
 </head>
@@ -77,7 +61,6 @@ tailwind.config = {
       <h2 id="sectionTitle" class="font-display text-2xl uppercase bg-neoYellow px-4 py-1.5 border-3 border-neoBlack shadow-brutal-sm inline-block transform -rotate-1">Trending Anime</h2>
       <button id="backBtn" onclick="playSound('click'); resetHome()" class="hidden text-sm font-bold bg-white border-3 border-neoBlack px-4 py-2 shadow-brutal-sm btn-brutal hover:bg-gray-100 uppercase">← Kembali</button>
     </div>
-    <!-- Grid Anime -->
     <div id="animeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"></div>
   </main>
 
@@ -99,19 +82,16 @@ tailwind.config = {
   <div id="playerModal" class="fixed inset-0 z-[60] hidden items-start justify-center p-0 md:p-6 bg-neoBlack/95 backdrop-blur-md overflow-y-auto">
     <div class="relative w-full max-w-5xl bg-white md:border-4 md:border-neoBlack md:shadow-[12px_12px_0px_0px_#FFD600] flex flex-col md:mt-4 modal-pop">
       
-      <!-- Video Area -->
       <div class="w-full aspect-video bg-black relative flex items-center justify-center border-b-4 border-neoBlack group">
         <video id="videoPlayer" class="w-full h-full object-contain" crossorigin="anonymous"></video>
         
         <!-- Custom Controls -->
         <div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" id="customControls">
-          <!-- Progress Bar -->
           <div class="px-4 mb-2 cursor-pointer w-full" onclick="seekVideo(event)">
             <div class="w-full h-2 bg-gray-600 border border-white/20 relative">
               <div id="progressBar" class="absolute top-0 left-0 h-full bg-neoPink w-0 transition-all duration-100"></div>
             </div>
           </div>
-          <!-- Bottom Controls -->
           <div class="flex items-center justify-between px-4 pb-3 text-white">
             <div class="flex items-center gap-4">
               <button onclick="togglePlay()" id="playBtn" class="hover:text-neoPink transition-colors"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
@@ -119,7 +99,6 @@ tailwind.config = {
               <button onclick="toggleMute()" id="muteBtn" class="hover:text-neoPink"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
             <div class="flex items-center gap-4">
-              <!-- Quality Menu Kustom -->
               <div class="relative">
                 <button onclick="toggleQualityMenu(event)" class="hover:text-neoPink"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
                 <div id="qualityMenu" class="hidden absolute bottom-10 right-0 bg-black/90 border-2 border-white/20 text-white min-w-[120px] rounded overflow-hidden">
@@ -127,7 +106,6 @@ tailwind.config = {
                   <div id="qualityList" class="flex flex-col text-sm"></div>
                 </div>
               </div>
-              <!-- Subtitle Toggle -->
               <button onclick="toggleSubtitle()" id="subBtn" class="hover:text-neoPink font-bold text-xs border-2 border-white/50 px-2 py-0.5 rounded">CC</button>
               <button onclick="toggleFullscreen()" class="hover:text-neoPink"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg></button>
             </div>
@@ -141,7 +119,6 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- Info Bawah -->
       <div class="p-4 md:p-6 bg-white">
         <h2 id="playerTitle" class="font-display text-xl md:text-3xl leading-tight mb-2">Judul Anime</h2>
         <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-gray-600 mb-4">
@@ -154,9 +131,6 @@ tailwind.config = {
   </div>
 
 <script>
-// ==========================================
-// KONFIGURASI & STATE
-// ==========================================
 const ANILIST_API = 'https://graphql.anilist.co';
 const STREAM_API = '/api/stream'; 
 
@@ -164,9 +138,6 @@ let hls = null;
 let playerState = { title: '', epNum: 1, totalEps: 12 };
 let audioCtx;
 
-// ==========================================
-// SOUND EFFECTS
-// ==========================================
 function playSound(type) {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -182,10 +153,7 @@ function playSound(type) {
   } catch (e) {}
 }
 
-// ==========================================
-// ANILIST API
-// ==========================================
-const MEDIA_FIELDS = `id idMal title { romaji english } coverImage { extraLarge } averageScore status genres episodes`;
+const MEDIA_FIELDS = `id title { romaji english } coverImage { extraLarge } averageScore status genres episodes`;
 
 async function fetchAniList(query, variables) {
   const res = await fetch(ANILIST_API, {
@@ -204,7 +172,6 @@ function renderAnimeCards(animes) {
   }
   grid.innerHTML = animes.map(anime => {
     const title = anime.title.english || anime.title.romaji;
-    // Ganti kutip agar tidak error saat masuk ke onclick
     const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     const totalEps = anime.episodes || 12;
     const statusBadge = anime.status === 'FINISHED' ? 'bg-neoCyan' : anime.status === 'RELEASING' ? 'bg-green-400' : 'bg-gray-300';
@@ -261,9 +228,6 @@ function resetHome() {
   loadHome();
 }
 
-// ==========================================
-// MODAL EPISODE
-// ==========================================
 function openEpisodeModal(title, totalEps) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalSubtitle').textContent = `Total ${totalEps} Episode`;
@@ -286,9 +250,6 @@ function closeEpisodeModal() {
   document.getElementById('episodeModal').classList.remove('flex');
 }
 
-// ==========================================
-// CUSTOM VIDEO PLAYER & STREAMING
-// ==========================================
 function playEpisode(title, epNum, totalEps) {
   closeEpisodeModal();
   playerState = { title, epNum, totalEps };
@@ -311,16 +272,17 @@ async function loadStream(title, epNum) {
   video.pause(); video.removeAttribute('src'); video.load();
 
   try {
-    // Manggil API Vercel kita dengan judul anime
+    // Memanggil API backend kita
     const res = await fetch(`${STREAM_API}?title=${encodeURIComponent(title)}&ep=${epNum}`);
-    if (!res.ok) throw new Error('Gagal konek ke API Stream');
     
-    const data = await res.json();
-    if (!data.sources || data.sources.length === 0) throw new Error(data.error || 'Video tidak tersedia di server');
+    // Ambil JSON error jika ada
+    const data = await res.json(); 
+    if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan di server');
+
+    if (!data.sources || data.sources.length === 0) throw new Error('Video tidak tersedia di server.');
 
     const source = data.sources.find(s => s.isM3U8) || data.sources[0];
 
-    // Putar pakai HLS.js
     if (Hls.isSupported() && source.isM3U8) {
       hls = new Hls();
       hls.loadSource(source.url);
@@ -333,10 +295,9 @@ async function loadStream(title, epNum) {
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) loading.innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Video diblokir</p>';
+        if (data.fatal) loading.innerHTML = '<p class="text-red-500 font-bold p-4 text-center">Stream Error / Video diblokir.</p>';
       });
     } else {
-      // Fallback Safari/iOS
       video.src = source.url;
       video.addEventListener('loadedmetadata', () => {
         loading.classList.add('hidden');
@@ -344,7 +305,6 @@ async function loadStream(title, epNum) {
       });
     }
 
-    // Tambahkan Subtitle
     video.querySelectorAll('track').forEach(t => t.remove());
     if (data.subtitles) {
       data.subtitles.forEach((sub, idx) => {
@@ -353,7 +313,7 @@ async function loadStream(title, epNum) {
         track.label = sub.lang;
         track.srclang = sub.lang.substring(0, 2).toLowerCase();
         track.src = sub.url;
-        if (idx === 0) track.default = true; // Aktifkan sub pertama
+        if (idx === 0) track.default = true;
         video.appendChild(track);
       });
     }
@@ -363,9 +323,7 @@ async function loadStream(title, epNum) {
   }
 }
 
-// === KONTROL PLAYER KUSTOM ===
 const video = document.getElementById('videoPlayer');
-
 function togglePlay() { video.paused ? video.play() : video.pause(); }
 video.addEventListener('play', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>');
 video.addEventListener('pause', () => document.getElementById('playBtn').innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>');
@@ -379,8 +337,7 @@ video.addEventListener('timeupdate', () => {
 
 function seekVideo(e) {
   const rect = e.currentTarget.getBoundingClientRect();
-  const pos = (e.clientX - rect.left) / rect.width;
-  video.currentTime = pos * video.duration;
+  video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
 }
 
 function toggleMute() { video.muted = !video.muted; }
@@ -397,7 +354,6 @@ function toggleSubtitle() {
   }
 }
 
-// === MENU KUALITAS KUSTOM ===
 function setupQualityMenu(levels) {
   const list = document.getElementById('qualityList');
   list.innerHTML = '';
@@ -438,7 +394,6 @@ function closePlayerModal() {
   document.getElementById('playerModal').classList.remove('flex');
 }
 
-// Init Awal
 document.addEventListener('DOMContentLoaded', () => {
   loadHome();
 });
